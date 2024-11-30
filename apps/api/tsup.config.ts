@@ -1,8 +1,30 @@
-import { defineConfig, type Options } from "tsup";
+import { defineConfig } from 'tsup'
 
-export default defineConfig((options: Options) => ({
-  entryPoints: ["src/index.ts"],
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['esm'],
+  dts: true,
   clean: true,
-  format: ["cjs"],
-  ...options,
-}));
+  outDir: 'dist',
+  target: 'node20',
+  sourcemap: true,
+  splitting: false,
+  noExternal: [
+    'dotenv',
+    '@repo/logger',
+    '@bull-board/express',
+    'winston'
+  ],
+  outExtension({ format }) {
+    return {
+      js: `.js`
+    }
+  },
+  banner: {
+    js: `import { createRequire } from 'module';
+const require = createRequire(import.meta.url);`
+  },
+  env: {
+    NODE_ENV: process.env.NODE_ENV || 'development'
+  }
+})
