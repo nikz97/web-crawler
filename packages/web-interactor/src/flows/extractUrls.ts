@@ -1,7 +1,5 @@
 import { Page } from "playwright";
 import { processUrlsWithConcurrency } from "../operations/scrapeNetworkCalls";
-import { get } from "http";
-
 
 export async function processNetworkCallsExtraction(page: Page, url: string) {
     let networkCalls = null;

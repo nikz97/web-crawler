@@ -2,47 +2,40 @@ import mongoose from "mongoose";
 import logger from "./../utils/logger.js";
 import CONFIG from "./../config/index.js";
 
-const dbConnect = () => {
-  const options = {
-    serverApi: { version: "1", strict: true, deprecationErrors: true },
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  };
+// Add this line before connection
+mongoose.set('bufferCommands', false); // Disable buffering
 
-  // Enable Mongoose debugging to log all MongoDB operations
-  mongoose.set("debug", (collectionName, method, query, doc) => {
-    logger.log(
-      "debug",
-      `${collectionName}.${method}`,
-      JSON.stringify(query),
-      doc,
-    );
-  });
 
-  mongoose.connection.on("connected", () => {
-    logger.log("info", "Database connection established.");
-  });
+const dbConnect = async () => {
+  // Clear any existing connections
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
 
-  mongoose.connection.on("error", (err) => {
-    logger.log("error", `Database connection error: ${err}`);
-    mongoose.disconnect();
-  });
-
-  mongoose.connection.on("disconnected", () => {
-    logger.log("info", "Database disconnected. Reconnecting...");
-    connectWithRetry();
-  });
-
-  const connectWithRetry = () => {
-    mongoose
-      .connect(CONFIG.MONGODB_URI, options as mongoose.ConnectOptions)
-      .then(
-        () => logger.log("info", "Connected to MongoDB!"),
-        (err) => logger.log("error", `Connection attempt failed: ${err}`),
-      );
-  };
-
-  connectWithRetry();
+  try {
+    // Wait for connection
+    await mongoose.connect(CONFIG.MONGODB_URI);
+    
+    // Test the connection with a ping
+    if (mongoose.connection.db) {
+      await mongoose.connection.db.admin().ping();
+      logger.log("info", "MongoDB connected and verified!");
+    } else {
+      throw new Error("MongoDB connection failed: database not available");
+    }
+    
+    return mongoose.connection;
+  } catch (error) {
+    logger.log("error", `MongoDB connection error: ${error}`);
+    throw error;
+  }
+};
+// Export the connected database instance
+export const getDb = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    await dbConnect();
+  }
+  return mongoose.connection;
 };
 
 export default dbConnect;

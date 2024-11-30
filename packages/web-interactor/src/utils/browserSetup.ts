@@ -1,14 +1,12 @@
-// packages/leadingreach-interactor/src/utils/browserSetup.ts
+// packages/web-interactor/src/utils/browserSetup.ts
 
 import { chromium, Browser, Page, BrowserContext } from "playwright";
 import { Browserbase } from "@browserbasehq/sdk";
 import { ns, keys } from "../services/session.js";
 import { config } from "../config/index.js";
-import fs from "fs";
-import path from "path";
-import fetch from "node-fetch"; // Ensure fetch is available
 
 export async function setupBrowser(): Promise<{ browser: Browser; page: Page; }> {
+  // const { browser, context } = await getBrowserbaseChromiumBrowser();
   const { browser, context } = await getLocalChromiumBrowser();
   // const context = await browser.newContext({ recordVideo: { dir: "videos/" } });
   const page = await context.newPage();
@@ -92,5 +90,3 @@ async function getLocalChromiumBrowser() {
 
   return { browser, context };
 }
-
-

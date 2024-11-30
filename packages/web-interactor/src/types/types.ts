@@ -1,12 +1,3 @@
-export interface RequestOptions {
-  customStatus?: string[];
-  pageNumber?: number;
-  pageRows?: number;
-  sentOnEnd?: string;
-  sentOnRangeModifier?: string;
-  type?: number;
-}
-
 // Define interfaces for our data structures
 export interface NetworkCall {
   url: string;

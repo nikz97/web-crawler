@@ -12,7 +12,7 @@ export async function processUrlsWithConcurrency(
     console.log("urls: ", urls);
     for (let i = 0; i < urls.length; i += maxConcurrent) {
         chunks.push(urls.slice(i, i + maxConcurrent));
-        if(i/maxConcurrent == 10){
+        if(i/maxConcurrent === 3){
             break;
         }
     }

@@ -9,12 +9,12 @@ export async function initializeCrawlerJob(
   ) {
   
     // Create a new BVWeinfuseJob document and save it to the database
-    // const extractionJob: IExtractionJob = await new ExtractionJob({
-    //   username: usernName,
-    //   password: password,
-    //   startedAt: new Date(),
-    //   status: CALL_STATUS.SCHEDULED,
-    // }).save();
+    await ExtractionJob.create({
+      username: usernName,
+      password: password,
+      startedAt: new Date(),
+      status: CALL_STATUS.SCHEDULED,
+    });
 
     await scheduleExtractionJob({
       userName: usernName,

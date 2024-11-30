@@ -1,4 +1,4 @@
-import { CALL_STATUS, ExtractionJob } from "@repo/mongoose-schema";
+import { CALL_STATUS, ExtractionJob, INetworkCall, NetworkCall } from "@repo/mongoose-schema";
 import { WorkerResult } from "../services/bullmq";
 import logger from "../utils/logger";
 import { extractionRunner } from "@repo/web-interactor";
@@ -20,23 +20,28 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
       const url = job.data.url;
       const authRequired = job.data.authRequired;
       const result = await extractionRunner(userName, password, url, authRequired);
-    //   const referralDataList = result.map((referral: any) => {
-    //     return {
-    //       updateOne: {
-    //         filter: { referralId: referral.referralId },
-    //         update: {
-    //           $set: {
-    //             referralObject: referral.referralMessage,
-    //             referralFiles: referral.referralFiles,
-    //           },
-    //         },
-    //         upsert: true, // If no document matches, insert a new one
-    //       },
-    //     };
-    //   });
-
-    //   await Referral.bulkWrite(referralDataList);
-      // scheduleOCRExtractionJob(referralDataList);
+      const networkCallOperations = result.map((call: INetworkCall) => {
+        return {
+          updateOne: {
+            filter: { 
+              url: call.url,
+              method: call.method,
+              resourceType: call.resourceType 
+            },
+            update: {
+              $set: {
+                headers: call.headers,
+                postData: call.postData,
+                response: call.response
+              }
+            },
+            upsert: true // Creates new document if no match is found
+          }
+        };
+      });
+      
+      // Perform bulk write operation
+      await NetworkCall.bulkWrite(networkCallOperations, { ordered: false });
       logger.info(`initiatelExtractionJob: Job ${job.id} completed with result:`);
       return {
 
