@@ -7,12 +7,13 @@ export async function createCrawlerJob(
     res: Response,
   ): Promise<void> {
     const crawlerRequest = req.body;
-    const { url, userName, password } = crawlerRequest;
+    const { url, userName, password ,authRequired } = crawlerRequest;
 
     const extractionJob = await initializeCrawlerJob(
       url,
       userName,
       password,
+      authRequired
     );
 
     res.status(200);

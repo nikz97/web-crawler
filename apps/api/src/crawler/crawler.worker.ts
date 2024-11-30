@@ -18,7 +18,8 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
       const userName = job.data.userName;
       const password = job.data.password;
       const url = job.data.url;
-      const result = await extractionRunner(userName, password, url);
+      const authRequired = job.data.authRequired;
+      const result = await extractionRunner(userName, password, url, authRequired);
     //   const referralDataList = result.map((referral: any) => {
     //     return {
     //       updateOne: {

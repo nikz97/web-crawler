@@ -17,11 +17,12 @@ export function extractionRunner(
   username: string,
   password: string,
   url: string,
+  authRequired: boolean = true
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     ns.run(async () => {
       try {
-        const result = await runExtractionRunner(username, password, url);
+        const result = await runExtractionRunner(username, password, url, authRequired);
         resolve(result);
       } catch (error) {
         console.error(`Error in runLoginRunner: ${error}`);
@@ -35,6 +36,7 @@ export async function runExtractionRunner(
   username: string,
   password: string,
   url: string,
+  authRequired: boolean
 ): Promise<any> {
   console.log(`Starting login runner...`);
 
@@ -44,10 +46,23 @@ export async function runExtractionRunner(
     ({ browser, page } = await setupBrowser());
     page.setDefaultTimeout(DEFAULT_TIMEOUT);
 
-    console.log(`Logging in...`);
-    await login(username, password, url, page);
-    console.log("Successfully logged in!");
-
+    if (authRequired) {
+      console.log(`Logging in...`);
+      try{
+        await login(username, password, url, page);
+        console.log("Successfully logged in!");
+      } catch (error) {
+        if(error instanceof Error) {
+          if(error.message === `Success indicator not found`){
+            console.error(`Login Failed : ${error.message}`);
+          }
+        }
+      }
+      
+    } else {
+      console.log(`No login required`);
+      await page.goto(url, { waitUntil: "networkidle", timeout: 10000 });
+    }
     // implement the rest of your code here
     // Call the API to get the list of URLs present in the website home page.
     // Wait for the page to load completely

@@ -1,5 +1,7 @@
 import { Page } from "playwright";
 import { retryOperation } from "../utils/retryOperation.js";
+import { usernameSelectors, passwordSelectors, loginButtonSelectors, successIndicators } from "../types/types.js";
+import { verifyLoginSuccess } from "./verifyLogin.js";
 
 export async function login(
   username: string,
@@ -10,42 +12,6 @@ export async function login(
   return retryOperation(async () => {
     try{
       await page.goto(url, { waitUntil: "networkidle" });
-
-      // Common selectors for username/email fields
-      const usernameSelectors = [
-        'input[name="username"]',
-        'input[name="email"]',
-        'input[type="email"]',
-        'input[placeholder*="email" i]',
-        'input[placeholder*="username" i]',
-        'input[id*="email" i]',
-        'input[id*="username" i]',
-        'input[class*="email" i]',
-        'input[class*="username" i]'
-      ];
-
-      // Common selectors for password fields
-      const passwordSelectors = [
-        'input[name="password"]',
-        'input[type="password"]',
-        'input[placeholder*="password" i]',
-        'input[id*="password" i]',
-        'input[class*="password" i]'
-      ];
-
-      // Common selectors for login buttons
-      const loginButtonSelectors = [
-        'button[type="submit"]',
-        'input[type="submit"]',
-        'button:has-text("Log in")',
-        'button:has-text("Sign in")',
-        'button:has-text("Login")',
-        'button:has-text("Signin")',
-        'a:has-text("Log in")',
-        'a:has-text("Sign in")',
-        '[role="button"]:has-text("Log in")',
-        '[role="button"]:has-text("Sign in")'
-      ];
 
       // Wait for any login form elements to be present
       await Promise.race([
@@ -99,15 +65,10 @@ export async function login(
 
       await page.waitForTimeout(4000);
 
-      const successIndicators = [
-        'Home',
-        'Dashboard',
-        'Profile',
-        'Account',
-        'Logout',
-        'Sign out'
-      ];
-
+      const isSuccess = await verifyLoginSuccess(page);
+      if (!isSuccess) {
+        throw new Error('Login verification failed');
+      }
       const foundSuccessIndicator = await Promise.any(
         successIndicators.map(async (text) => {
           const element = page.getByText(text, { exact: true });
@@ -118,8 +79,8 @@ export async function login(
       if (!foundSuccessIndicator) {
         // Additional checks for login success
         const urlAfterLogin = page.url();
-        if (urlAfterLogin === url || urlAfterLogin.includes('login') || urlAfterLogin.includes('signin')) {
-          throw new Error('Login might have failed - URL indicates login page');
+        if (urlAfterLogin.includes('login') || urlAfterLogin.includes('signin')) {
+          throw new Error('Success indicator not found');
         }
       }
       console.log("Found success indicator!");

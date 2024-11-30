@@ -5,6 +5,7 @@ export async function initializeCrawlerJob(
     url: string,
     usernName: string,
     password: string,
+    authRequired: boolean
   ) {
   
     // Create a new BVWeinfuseJob document and save it to the database
@@ -19,6 +20,7 @@ export async function initializeCrawlerJob(
       userName: usernName,
       password: password,
       url: url,
+      authRequired: authRequired,
     });
 
     return ;
