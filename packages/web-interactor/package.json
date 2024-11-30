@@ -1,0 +1,54 @@
+{
+  "name": "@repo/web-interactor",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "dev": "tsup --watch",
+    "play": "tsup --watch & nodemon ./dist/index.js",
+    "lint": "eslint \"src/**/*.ts*\" --max-warnings 0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/cls-hooked": "^4.3.8",
+    "@types/html-to-text": "^9.0.4",
+    "@types/imap-simple": "^4.2.9",
+    "@types/mailparser": "^3.4.5",
+    "@types/node": "^20.12.12",
+    "@types/unzipper": "^0.10.10",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3",
+    "tsup": "^8.0.1",
+    "nodemon": "^3.0.0"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^1.4.2",
+    "@google-cloud/storage": "^7.13.0",
+    "cls-hooked": "^4.2.2",
+    "html-to-text": "^9.0.5",
+    "imap": "^0.8.19",
+    "imap-simple": "^5.1.0",
+    "mailparser": "^3.7.1",
+    "node-fetch": "^3.3.2",
+    "playwright": "^1.40.0",
+    "totp-generator": "^1.0.0",
+    "unzipper": "^0.12.3"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types/*": {
+      "types": "./dist/types/*.d.ts"
+    }
+  }
+}
