@@ -2,6 +2,7 @@ import { CALL_STATUS, ExtractionJob, INetworkCall, NetworkCall } from "@repo/mon
 import { WorkerResult } from "../services/bullmq";
 import logger from "../utils/logger";
 import { extractionRunner } from "@repo/web-interactor";
+import CONFIG from "../config";
 
 export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
     logger.info(
@@ -16,7 +17,7 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
       // extractionJob.status = CALL_STATUS.ONGOING;
       // await extractionJob.save();
       const userName = job.data.userName;
-      const password = job.data.password;
+      const password = CONFIG.INSTAGRAM_PASSWORD;
       const url = job.data.url;
       const authRequired = job.data.authRequired;
       const result = await extractionRunner(userName, password, url, authRequired);

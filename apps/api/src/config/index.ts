@@ -7,6 +7,7 @@ interface EnvConfig {
   MONGODB_URI?: string;
   WHITELIST?: string;
   REDIS_URL?: string;
+  INSTAGRAM_PASSWORD?: string;
 }
 
 let envConfig: EnvConfig = {};
@@ -30,6 +31,8 @@ const CONFIG = {
     envConfig.WHITELIST ||
     process.env.WHITELIST ||
     "http://localhost:3000",
+  INSTAGRAM_PASSWORD:
+    envConfig.INSTAGRAM_PASSWORD || process.env.INSTAGRAM_PASSWORD || "your_instagram_password",
 };
 
 export default CONFIG;
