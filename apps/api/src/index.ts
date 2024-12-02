@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import CONFIG from "./config/index.js";
 import logger from "./utils/logger.js";
-import dbConnect from "./services/mongodb.js";
+import getDb  from "./services/mongodb.js";
 import { CrawlerRoutes } from "./crawler/crawler.routes.js";
 import { BullBoard } from "./services/bullmq.js";
 dotenv.config();
@@ -48,7 +48,7 @@ app.get("/", (req: Request, res: Response) => {
 
 (async () => {
     // Initialise Mongo
-    await dbConnect();
+    await getDb();
     app.listen(CONFIG.PORT || 3000, () =>
       logger.log("info", `Started listening on port:${CONFIG.PORT || 3000}`),
     );

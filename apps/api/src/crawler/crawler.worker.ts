@@ -3,6 +3,7 @@ import { WorkerResult } from "../services/bullmq";
 import logger from "../utils/logger";
 import { extractionRunner } from "@repo/web-interactor";
 import CONFIG from "../config";
+import mongoose from "mongoose";
 
 export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
     logger.info(
@@ -21,28 +22,26 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
       const url = job.data.url;
       const authRequired = job.data.authRequired;
       const result = await extractionRunner(userName, password, url, authRequired);
-      const networkCallOperations = result.map((call: INetworkCall) => {
-        return {
-          updateOne: {
-            filter: { 
-              url: call.url,
-              method: call.method,
-              resourceType: call.resourceType 
-            },
-            update: {
-              $set: {
-                headers: call.headers,
-                postData: call.postData,
-                response: call.response
-              }
-            },
-            upsert: true // Creates new document if no match is found
-          }
-        };
-      });
       
-      // Perform bulk write operation
-      await NetworkCall.bulkWrite(networkCallOperations, { ordered: false });
+      const db = mongoose.connection.db;
+      if(!db) {
+        throw new Error('No database connection');
+      }
+
+      const testCollection = db.collection('netwroCalls');
+      await testCollection.insertMany(
+        result.map((call: any) => {
+          return {
+            url: call.url,
+            method: call.method,
+            headers: call.headers,
+            resourceType: call.resourceType,
+            postData: call.postData,
+            response: call.response,
+          };
+        })
+      );
+
       logger.info(`initiatelExtractionJob: Job ${job.id} completed with result:`);
       return {
 

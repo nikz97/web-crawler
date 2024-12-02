@@ -1,5 +1,6 @@
-import { CALL_STATUS, ExtractionJob, IExtractionJob } from "@repo/mongoose-schema";
+import { CALL_STATUS, ExtractionJob } from "@repo/mongoose-schema";
 import { scheduleExtractionJob } from "./crawler.scheduler";
+import mongoose from "mongoose";
 
 export async function initializeCrawlerJob(
     url: string,
@@ -8,13 +9,17 @@ export async function initializeCrawlerJob(
     authRequired: boolean
   ) {
   
-    // Create a new BVWeinfuseJob document and save it to the database
-    // await ExtractionJob.create({
-    //   username: usernName,
-    //   password: password,
-    //   startedAt: new Date(),
-    //   status: CALL_STATUS.SCHEDULED,
-    // });
+    const db = mongoose.connection.db;
+    if(!db) {
+      throw new Error('No database connection');
+    }
+    const testCollection = db.collection('extractionjob');
+    await testCollection.insertOne({ 
+      username: usernName, 
+      password: password,
+      url: url, 
+      status: CALL_STATUS.SCHEDULED, 
+    });
 
     await scheduleExtractionJob({
       userName: usernName,

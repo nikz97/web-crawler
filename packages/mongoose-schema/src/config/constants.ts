@@ -1,7 +1,6 @@
 export const SCHEMA_NAMES = {
-  EXTRACTION_JOB: "ExtractionJob",
-  JSON_DUMP: "JSONDump",
-  NETWORK_CALL: "NetworkCalls",
+  EXTRACTION_JOB: "extractionjob",
+  NETWORK_CALL: "networkCalls",
 };
 
 export const CALL_STATUS = {

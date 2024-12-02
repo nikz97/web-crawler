@@ -1,41 +1,56 @@
+// mongodb.ts
 import mongoose from "mongoose";
 import logger from "./../utils/logger.js";
 import CONFIG from "./../config/index.js";
+import { ExtractionJob } from "@repo/mongoose-schema";
 
-// Add this line before connection
-mongoose.set('bufferCommands', false); // Disable buffering
+mongoose.set('bufferTimeoutMS', 30000);  // Increase buffer timeout
 
+let isConnected = false;
 
-const dbConnect = async () => {
-  // Clear any existing connections
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-  }
-
+const connectDB = async () => {
   try {
-    // Wait for connection
-    await mongoose.connect(CONFIG.MONGODB_URI);
-    
-    // Test the connection with a ping
-    if (mongoose.connection.db) {
-      await mongoose.connection.db.admin().ping();
-      logger.log("info", "MongoDB connected and verified!");
-    } else {
-      throw new Error("MongoDB connection failed: database not available");
+    if (!isConnected) {
+      logger.log("info", "Attempting to connect to MongoDB...");
+      logger.log("info", `Connection URI: ${CONFIG.MONGODB_URI.replace(/\/\/[^@]+@/, '//<credentials>@')}`);
+
+      const connection = await mongoose.connect(CONFIG.MONGODB_URI);
+      
+      // Test the connection
+      await connection.connection.db?.admin().ping();
+      
+      isConnected = true;
+      logger.log("info", "MongoDB connection successful and verified");
     }
-    
     return mongoose.connection;
   } catch (error) {
+    isConnected = false;
     logger.log("error", `MongoDB connection error: ${error}`);
     throw error;
   }
 };
-// Export the connected database instance
+
+mongoose.connection.on('connected', () => {
+  logger.log("info", "Mongoose 'connected' event fired");
+  isConnected = true;
+});
+
+mongoose.connection.on('disconnected', () => {
+  logger.log("warn", "Mongoose 'disconnected' event fired");
+  isConnected = false;
+});
+
+mongoose.connection.on('error', (error) => {
+  logger.log("error", `Mongoose error event: ${error}`);
+  isConnected = false;
+});
+
 export const getDb = async () => {
-  if (mongoose.connection.readyState !== 1) {
-    await dbConnect();
+  if (!isConnected || mongoose.connection.readyState !== 1) {
+    logger.log("info", `Reconnecting to MongoDB (current state: ${mongoose.connection.readyState})`);
+    return connectDB();
   }
   return mongoose.connection;
 };
 
-export default dbConnect;
+export default getDb;
