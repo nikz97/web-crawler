@@ -14,7 +14,7 @@ export async function initializeCrawlerJob(
       throw new Error('No database connection');
     }
     const testCollection = db.collection('extractionjob');
-    await testCollection.insertOne({ 
+    const job = await testCollection.insertOne({ 
       username: usernName, 
       password: password,
       url: url, 
@@ -22,6 +22,7 @@ export async function initializeCrawlerJob(
     });
 
     await scheduleExtractionJob({
+      jobId: job.insertedId,
       userName: usernName,
       password: password,
       url: url,

@@ -10,9 +10,8 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
         `initiateCrawlerJob: Worker started job ${job.id} with data:`,
         { jobData: job.data }
       );
-
+    const jobId = job.data.jobId;
     try {
-      const jobId = job.data.id;
       // const extractionJob = await ExtractionJob.findById(jobId);
 
       // extractionJob.status = CALL_STATUS.ONGOING;
@@ -27,7 +26,14 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
       if(!db) {
         throw new Error('No database connection');
       }
-
+      const extractionJob = db.collection('extractionjob');
+      await extractionJob.updateOne(
+        { _id: new mongoose.Types.ObjectId(jobId) },
+        {
+          $set: {
+            status: CALL_STATUS.SUCCESSFUL
+          }
+      });
       const testCollection = db.collection('netwroCalls');
       await testCollection.insertMany(
         result.map((call: any) => {
@@ -51,6 +57,18 @@ export const initiateCrawlerJob = async (job: any): Promise<WorkerResult> => {
         `initiatelExtractionJob: Job ${job.id} failed with error:`,
         { error: error.message, stack: error.stack }
       );
+      const db = mongoose.connection.db;
+      if(!db) {
+        throw new Error('No database connection');
+      }
+      const extractionJob = db.collection('extractionjob');
+      await extractionJob.updateOne(
+        { _id: new mongoose.Types.ObjectId(jobId) },
+        {
+          $set: {
+            status: CALL_STATUS.SUCCESSFUL
+          }
+      });
       return {
         error: {
           message: error.message,
