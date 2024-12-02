@@ -32,52 +32,52 @@ export async function processUrlsWithConcurrency(
                 console.log("created new page");
             
                 // Set up response listener before navigation
-                const responsePromise = newPage.waitForResponse(
-                    (response) => {
-                        const url = response.url().toLowerCase();
-                        return apiPatterns.some(pattern => url.includes(pattern));
-                    },
-                    { timeout: 10000 }
-                );
-
-                // Navigate to the URL
+                newPage.on('response', async (response) => {
+                    const responseUrl = response.url().toLowerCase();
+                    if (apiPatterns.some(pattern => responseUrl.includes(pattern))) {
+                        try {
+                            const contentType = response.headers()['content-type'] || '';
+                            let responseBody;
+                            
+                            try {
+                                if (contentType.includes('application/json')) {
+                                    responseBody = await response.json();
+                                } else {
+                                    responseBody = await response.text();
+                                    console.log(`Unknown content type: ${contentType}`);
+                                }
+                            } catch (error) {
+                                console.error(`Error parsing response: ${error}`);
+                                responseBody = await response.text();
+                            }
+    
+                            const request = response.request();
+                            const networkCall: NetworkCall = {
+                                url: request.url(),
+                                method: request.method(),
+                                headers: request.headers(),
+                                resourceType: request.resourceType(),
+                                postData: request.postData(),
+                                response: {
+                                    status: response.status(),
+                                    statusText: response.statusText(),
+                                    headers: response.headers(),
+                                    body: responseBody
+                                }
+                            };
+    
+                            results.push(networkCall);
+                        } catch (error) {
+                            console.error(`Error processing response: ${error}`);
+                        }
+                    }
+                });
+    
+                // Navigate and wait for page load
                 await newPage.goto(url);
                 await page.waitForTimeout(5000);
                 await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {});
                 console.log("Navigated to URL ", url);
-                // Wait for and process the specific response
-                const response = await responsePromise;
-                const contentType = response.headers()['content-type'] || '';
-                let responseBody;
-                try {
-                    if (contentType.includes('application/json')) {
-                        responseBody = await response.json();
-                    } else {
-                        // Default to text for unknown content types
-                        responseBody = await response.text();
-                        console.log(`Unknown content type: ${contentType}`);
-                    }
-                } catch (error) {
-                    console.error(`Error parsing response: ${error}`);
-                    responseBody = await response.text(); // Fallback to raw text
-                }
-                const request = response.request();
-
-                const networkCall: NetworkCall = {
-                    url: request.url(),
-                    method: request.method(),
-                    headers: request.headers(),
-                    resourceType: request.resourceType(),
-                    postData: request.postData(),
-                    response: {
-                        status: response.status(),
-                        statusText: response.statusText(),
-                        headers: response.headers(),
-                        body: responseBody
-                    }
-                };
-
-                results.push(networkCall);
                 
                 await newPage.waitForTimeout(3000);
             } catch (error) {
